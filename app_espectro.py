@@ -53,7 +53,7 @@ with st.sidebar:
         param_ref = st.selectbox("Seleccione el parámetro a consultar:", ['Z', 'n', 'Suelo', 'Fa', 'Fd', 'Fs', 'Ct', 'alpha'])
         img_path = f"tabla_{param_ref}.png" if param_ref != 'Suelo' else "tabla_suelo.png"
         if os.path.exists(img_path):
-            st.image(Image.open(img_path), use_column_width=True)
+            st.image(img_path, use_container_width=True)
         else:
             st.error(f"⚠️ Guarda la imagen '{img_path}' en la misma carpeta.")
             
