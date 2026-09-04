@@ -3,6 +3,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
+import io
+import matplotlib.lines as mlines
 from matplotlib.backends.backend_pdf import PdfPages
 import os
 import io
@@ -137,44 +139,77 @@ colD.metric("Sa(TaE)", f"{Sa_TaE:.3f} g")
 tab1, tab2, tab3 = st.tabs(["📈 Gráfica", "📊 Tabla de Valores", "🗄️ Registro de Pruebas"])
 
 with tab1:
-    fig, ax = plt.subplots(figsize=(8, 5), dpi=100)
-    ax.plot(T_arr, Sa_el, 'r-', label='Espectro elástico')
-    ax.plot(T_arr, Sa_in, '#2c7fb8', label='Espectro inelástico')
-    
-    box_style = dict(boxstyle='round,pad=0.2', facecolor='white', edgecolor='none', alpha=0.8)
+    # ==========================================
+        # SECCIÓN DE GRAFICACIÓN MEJORADA
+        # ==========================================
+        fig, ax = plt.subplots(figsize=(8, 5), dpi=100)
+        
+        # Curvas principales
+        ax.plot(T_arr, Sa_el, 'r-', label='Espectro elástico')
+        ax.plot(T_arr, Sa_in, '#2c7fb8', label='Espectro inelástico')
+        
+        # Estilo de la "cajita" para que los números sean legibles
+        box_style = dict(boxstyle='round,pad=0.2', facecolor='white', edgecolor='none', alpha=0.8)
 
-    # Intersección TaN
-    color_tan = '#FFA500' 
-    ax.plot(TaN, Sa_TaN, marker='o', color=color_tan, markersize=8, zorder=5)
-    ax.plot([TaN, TaN], [0, Sa_TaN], color=color_tan, linestyle='--', linewidth=1.5)
-    ax.plot([0, TaN], [Sa_TaN, Sa_TaN], color=color_tan, linestyle='--', linewidth=1.5)
-    ax.annotate(f"TaN={TaN:.3f}", xy=(TaN, Sa_TaN), xytext=(0, 15), textcoords="offset points", color=color_tan, weight='bold', ha='center', va='bottom', bbox=box_style)
-    ax.annotate(f"Sa={Sa_TaN:.3f}", xy=(TaN, Sa_TaN), xytext=(12, -8), textcoords="offset points", color=color_tan, weight='bold', ha='left', va='top', bbox=box_style)
+        # 1. Marcadores para TaN (Naranja)
+        color_tan = '#FFA500' 
+        ax.plot(TaN, Sa_TaN, marker='o', color=color_tan, markersize=8, zorder=5)
+        ax.plot([TaN, TaN], [0, Sa_TaN], color=color_tan, linestyle='--', linewidth=1.5)
+        ax.plot([0, TaN], [Sa_TaN, Sa_TaN], color=color_tan, linestyle='--', linewidth=1.5)
+        
+        ax.annotate(f"TaN={TaN:.3f}", xy=(TaN, 0), xytext=(0, 5), textcoords="offset points", 
+                    color=color_tan, weight='bold', ha='center', va='bottom', bbox=box_style)
+        ax.annotate(f"Sa(TaN)={Sa_TaN:.3f}", xy=(TaN, Sa_TaN), xytext=(0, 10), textcoords="offset points", 
+                    color=color_tan, weight='bold', ha='center', va='bottom', bbox=box_style)
 
-    # Intersección TaE
-    color_tae = 'm' 
-    ax.plot(Ta_E, Sa_TaE, marker='o', color=color_tae, markersize=8, zorder=5)
-    ax.plot([Ta_E, Ta_E], [0, Sa_TaE], color=color_tae, linestyle='-.', linewidth=1.5)
-    ax.plot([0, Ta_E], [Sa_TaE, Sa_TaE], color=color_tae, linestyle='-.', linewidth=1.5)
-    ax.annotate(f"TaE={Ta_E:.3f}", xy=(Ta_E, Sa_TaE), xytext=(0, 15), textcoords="offset points", color=color_tae, weight='bold', ha='center', va='bottom', bbox=box_style)
-    ax.annotate(f"Sa={Sa_TaE:.3f}", xy=(Ta_E, Sa_TaE), xytext=(12, -8), textcoords="offset points", color=color_tae, weight='bold', ha='left', va='top', bbox=box_style)
+        # 2. Marcadores para TaE (Magenta)
+        color_tae = 'm' 
+        ax.plot(Ta_E, Sa_TaE, marker='o', color=color_tae, markersize=8, zorder=5)
+        ax.plot([Ta_E, Ta_E], [0, Sa_TaE], color=color_tae, linestyle='-.', linewidth=1.5)
+        ax.plot([0, Ta_E], [Sa_TaE, Sa_TaE], color=color_tae, linestyle='-.', linewidth=1.5)
+        
+        ax.annotate(f"TaE={Ta_E:.3f}", xy=(Ta_E, 0), xytext=(0, 5), textcoords="offset points", 
+                    color=color_tae, weight='bold', ha='center', va='bottom', bbox=box_style)
+        ax.annotate(f"Sa(TaE)={Sa_TaE:.3f}", xy=(Ta_E, Sa_TaE), xytext=(0, 10), textcoords="offset points", 
+                    color=color_tae, weight='bold', ha='center', va='bottom', bbox=box_style)
 
-    ax.set_xlim(left=0, right=Tl * 1.05) 
-    ax.set_ylim(bottom=0, top=max(Sa_el) * 1.25) 
-    ax.set_title("Espectro de Diseño NEC-SE-DS", fontsize=12, fontweight='bold')
-    ax.set_xlabel("Periodo T (s)")
-    ax.set_ylabel("Sa (g)")
-    ax.grid(True, linestyle=':', alpha=0.6)
-    
-    handle_el = mlines.Line2D([], [], color='red', linestyle='-', label='Espectro elástico')
-    handle_in = mlines.Line2D([], [], color='#2c7fb8', linestyle='-', label='Espectro inelástico')
-    handle_ta_nec = mlines.Line2D([], [], color=color_tan, linestyle='--', label='Ta NEC')
-    handle_sa_nec = mlines.Line2D([], [], color=color_tan, linestyle='--', label='Sa NEC')
-    handle_ta_e = mlines.Line2D([], [], color=color_tae, linestyle='-.', label='Ta ETABS')
-    handle_sa_e = mlines.Line2D([], [], color=color_tae, linestyle='-.', label='Sa ETABS')
-    ax.legend(handles=[handle_el, handle_in, handle_ta_nec, handle_sa_nec, handle_ta_e, handle_sa_e], title="LEYENDA", loc='upper right')
-    
-    st.pyplot(fig)
+        # Ajustes visuales de la gráfica
+        ax.set_xlim(left=0, right=Tl * 1.05) 
+        ax.set_ylim(bottom=0, top=max(Sa_el) * 1.25) 
+        ax.set_title("Espectro de Diseño NEC-SE-DS", fontsize=12, fontweight='bold')
+        ax.set_xlabel("Periodo T (s)")
+        ax.set_ylabel("Sa (g)")
+        ax.grid(True, linestyle=':', alpha=0.6)
+        
+        # 3. Leyenda personalizada
+        handle_el = mlines.Line2D([], [], color='red', linestyle='-', label='Espectro elástico')
+        handle_in = mlines.Line2D([], [], color='#2c7fb8', linestyle='-', label='Espectro inelástico')
+        handle_ta_nec = mlines.Line2D([], [], color=color_tan, linestyle='--', label='Ta NEC')
+        handle_sa_nec = mlines.Line2D([], [], color=color_tan, linestyle='--', label='Sa NEC')
+        handle_ta_e = mlines.Line2D([], [], color=color_tae, linestyle='-.', label='Ta ETABS')
+        handle_sa_e = mlines.Line2D([], [], color=color_tae, linestyle='-.', label='Sa ETABS')
+
+        ax.legend(handles=[handle_el, handle_in, handle_ta_nec, handle_sa_nec, handle_ta_e, handle_sa_e],
+                  title="LEYENDA", title_fontproperties={'weight':'bold'}, loc='upper right', 
+                  edgecolor='black', framealpha=1.0)
+        
+        # Mostrar la gráfica en Streamlit
+        st.pyplot(fig)
+
+        # ==========================================
+        # BOTÓN DE EXPORTACIÓN A PDF
+        # ==========================================
+        buffer_pdf = io.BytesIO()
+        fig.savefig(buffer_pdf, format="pdf", bbox_inches="tight")
+        buffer_pdf.seek(0)
+
+        st.markdown("---")
+        st.download_button(
+            label="📄 Descargar Gráfica en PDF",
+            data=buffer_pdf,
+            file_name="Grafica_Espectro_NEC.pdf",
+            mime="application/pdf"
+        )
 
 with tab2:
     # Mostrar tabla con Pandas (Corregido el warning width='stretch')
